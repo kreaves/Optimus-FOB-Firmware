@@ -1,3 +1,8 @@
 #
 # Don't upload the build directory
 build
+
+#
+# This file is recreate during each build and will be different on each system
+# based on their Arduino installation. So it doesn't need to be tracked.
+.vscode/c_cpp_properties.json
