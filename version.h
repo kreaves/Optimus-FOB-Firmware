@@ -48,7 +48,7 @@
 ///
 /// @details
 /// This defines the build time of the software (hour, minutes, with no spaces)
-#define VERSION_NUMBER_BUILD_TIME           0x1045
+#define VERSION_NUMBER_BUILD_TIME           0x1145
 
 //
 // Shared Structures / Enumerations
