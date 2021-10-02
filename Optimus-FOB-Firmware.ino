@@ -28,6 +28,8 @@
 #include "secrets.h"
 #include "src/udp_pkt/udp_pkt_build.h"
 #include "src/udp_pkt/udp_pkt_parse.h"
+#include "src/button/button_led.h"
+#include "src/status/status_led.h"
 
 #include <SPI.h>
 #include <WiFiNINA.h>
@@ -49,7 +51,9 @@ IPAddress dest_ip_addr(CLIENT_IP_ADDRESS); // This is where the packets will be 
 String Scenario = "0";
 
 void setup() {
- // Initialize pins
+  // Initialize pins
+  button_led_cfg();
+  status_led_cfg();
 
   //Initialize serial and wait for port to open:
   Serial.begin(19200);
@@ -125,6 +129,12 @@ void loop() {
 
   // Handle serial commands
   serial_cmd_recv();
+
+  // Handle button stuff
+  button_led_action();
+
+  // Status LED
+  status_led_action();
 }
 
 /// @brief
@@ -186,6 +196,78 @@ void serial_cmd_recv(void)
     {
       cmd = udp_pkt_build_scenario_pkt(String("0"), (int)DEVICE_ID_NUMBER);
       udp_xmit_pkt(cmd);
+    }
+
+    // Command 'set'
+    //           1         2
+    // 01234567890123456789012345
+    // set button_led # on
+    // set button_led # off
+    // set button_led # blink
+    // set status_led c on
+    cmd = String("set");
+    if (0 == cmd.compareTo(temp.substring(0,3)))
+    {
+      cmd = String("button_led");
+      if (0 == cmd.compareTo(temp.substring(4,14)))
+      {
+        cmd = temp.substring(15,16);
+        const int button = cmd.toInt();
+        const button_leds_t led = BUTTON_1_LED;
+
+        if (0 == String("on").compareTo(temp.substring(17,19)))
+        {
+          button_led_set_mode(led, LED_MODE_ON);
+        }
+        else if (0 == String("off").compareTo(temp.substring(17,20)))
+        {
+          button_led_set_mode(led, LED_MODE_OFF);
+        }
+        else if (0 == String("blink").compareTo(temp.substring(17,22)))
+        {
+          button_led_set_mode(led, LED_MODE_BLINKING);
+        }
+        else
+        {
+          ;
+        }
+      }
+
+      //           1         2
+      // 01234567890123456789012345
+      // set status_led grn on
+      // set status_led grn off
+      // set status_led grn blink
+      cmd = String("status_led");
+      if (0 == cmd.compareTo(temp.substring(4,14)))
+      {
+        status_leds_t led;
+        if (0 == String("grn").compareTo(temp.substring(15,18)))
+        {
+          led = STATUS_LED_GRN;
+        }
+        else
+        {
+          led = STATUS_LED_YEL;
+        }
+
+        if (0 == String("on").compareTo(temp.substring(19,21)))
+        {
+          status_led_set_mode(led, STATUS_LED_MODE_ON);
+        }
+        else if (0 == String("off").compareTo(temp.substring(19,22)))
+        {
+          status_led_set_mode(led, STATUS_LED_MODE_OFF);
+        }
+        else if (0 == String("blink").compareTo(temp.substring(19,24)))
+        {
+          status_led_set_mode(led, STATUS_LED_MODE_BLINKING);
+        }
+        else
+        {
+          ;
+        }
+      }
     }
   }
 }
