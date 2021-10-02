@@ -211,9 +211,19 @@ void serial_cmd_recv(void)
       cmd = String("button_led");
       if (0 == cmd.compareTo(temp.substring(4,14)))
       {
-        cmd = temp.substring(15,16);
-        const int button = cmd.toInt();
-        const button_leds_t led = BUTTON_1_LED;
+        button_leds_t led;
+        if (0 == String("1").compareTo(temp.substring(15,16)))
+        {
+          led = BUTTON_1_LED;
+        }
+        else if (0 == String("2").compareTo(temp.substring(15,16)))
+        {
+          led = BUTTON_2_LED;
+        }
+        else
+        {
+          led = BUTTON_3_LED;
+        }
 
         if (0 == String("on").compareTo(temp.substring(17,19)))
         {
