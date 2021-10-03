@@ -30,6 +30,7 @@
 #include "src/udp_pkt/udp_pkt_parse.h"
 #include "src/button/button_led.h"
 #include "src/status/status_led.h"
+#include "src/button/button_switch.h"
 
 #include <SPI.h>
 #include <WiFiNINA.h>
@@ -53,9 +54,17 @@ IPAddress dest_ip_addr(CLIENT_IP_ADDRESS); // This is where the packets will be 
 
 String Scenario = "0";
 
+static button_switch_state_type local_switch_states[BUTTON_SWITCH_MAX] =
+{
+  BUTTON_SWITCH_STATE_CLOSED,
+  BUTTON_SWITCH_STATE_CLOSED,
+  BUTTON_SWITCH_STATE_CLOSED
+};
+
 void setup() {
   // Initialize pins
   button_led_cfg();
+  button_switch_cfg();
   status_led_cfg();
 
   //Initialize serial and wait for port to open:
@@ -93,8 +102,8 @@ void setup() {
     while (true);
   }
 
-  // wait 10 seconds for connection:
-  delay(10000);
+  // wait 5 seconds for connection:
+  //delay(5000);
 
   // Show WiFi information
   ap_wifi_status();
@@ -178,11 +187,77 @@ void loop() {
     }
   }
 
+  // Handle button 1 changes
+  if (local_switch_states[0] != button_switch_state_get(BUTTON_1_SWITCH))
+  {
+    local_switch_states[0] = button_switch_state_get(BUTTON_1_SWITCH);
+    if (BUTTON_SWITCH_STATE_CLOSED == local_switch_states[0])
+    {
+      String cmd;
+
+      if ("1a" == Scenario)
+      {
+        cmd = udp_pkt_build_scenario_pkt(String("0"), (int)DEVICE_ID_NUMBER);
+      }
+      else
+      {
+        cmd = udp_pkt_build_scenario_pkt(String("1a"), (int)DEVICE_ID_NUMBER);
+      }
+
+      udp_xmit_pkt(cmd);
+    }
+  }
+
+  // Handle button 2 changes
+  if (local_switch_states[1] != button_switch_state_get(BUTTON_2_SWITCH))
+  {
+    local_switch_states[1] = button_switch_state_get(BUTTON_2_SWITCH);
+    if (BUTTON_SWITCH_STATE_CLOSED == local_switch_states[1])
+    {
+      String cmd;
+
+      if ("2a" == Scenario)
+      {
+        cmd = udp_pkt_build_scenario_pkt(String("0"), (int)DEVICE_ID_NUMBER);
+        udp_xmit_pkt(cmd);
+      }
+      else
+      {
+        cmd = udp_pkt_build_scenario_pkt(String("2a"), (int)DEVICE_ID_NUMBER);
+      }
+
+      udp_xmit_pkt(cmd);
+    }
+  }
+
+  // Handle button 3 changes
+  if (local_switch_states[2] != button_switch_state_get(BUTTON_3_SWITCH))
+  {
+    local_switch_states[2] = button_switch_state_get(BUTTON_3_SWITCH);
+    if (BUTTON_SWITCH_STATE_CLOSED == local_switch_states[2])
+    {
+      String cmd;
+
+      if ("3a" == Scenario)
+      {
+        cmd = udp_pkt_build_scenario_pkt(String("0"), (int)DEVICE_ID_NUMBER);
+        udp_xmit_pkt(cmd);
+      }
+      else
+      {
+        cmd = udp_pkt_build_scenario_pkt(String("3a"), (int)DEVICE_ID_NUMBER);
+      }
+
+      udp_xmit_pkt(cmd);
+    }
+  }
+
   // Handle serial commands
   serial_cmd_recv();
 
   // Handle button stuff
   button_led_action();
+  button_switch_action();
 
   // Status LED
   status_led_action();
