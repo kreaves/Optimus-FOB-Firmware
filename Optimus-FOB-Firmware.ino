@@ -36,6 +36,8 @@
 #include <WiFiUdp.h>
 #include <ArduinoJson.h>
 
+#include <stdbool.h>
+
 String ssid_str = String(SECRET_SSID); //Network name (SSID), ascii string
 String pass_str = String(SECRET_PASS); //password from shared secret, ascii string
 unsigned short devid_str = (unsigned short)DEVICE_ID_NUMBER; //Device id
@@ -45,6 +47,7 @@ int udp_xmit_port = (int)UDP_PORT_TO_TRANSM; //This variable holds the UDP port 
 
 WiFiUDP udp; // This variable sets the wifi status to UDP
 
+bool dest_ip_addr_set = false;
 IPAddress dest_ip_addr(CLIENT_IP_ADDRESS); // This is where the packets will be sent to
 
 
@@ -98,6 +101,9 @@ void setup() {
 
   Serial.println("Network ready for connections");
 
+  // Indicate that the FOB is waiting for a network connection
+  status_led_set_mode(STATUS_LED_YEL, STATUS_LED_MODE_BLINKING);
+
   // Start UDP server
   udp.begin(udp_recv_port);
 
@@ -117,6 +123,10 @@ void loop() {
       Serial.print("Scenario ");
       Serial.print(priorScenario);
       Serial.println(" completed successfully, returning to Scenario 0.");
+
+      button_led_set_mode(BUTTON_1_LED, LED_MODE_OFF);
+      button_led_set_mode(BUTTON_2_LED, LED_MODE_OFF);
+      button_led_set_mode(BUTTON_3_LED, LED_MODE_OFF);
     }
     else
     {
@@ -124,6 +134,47 @@ void loop() {
       Serial.print(priorScenario);
       Serial.print(" to ");
       Serial.println(Scenario);
+
+      if ("1a" == Scenario)
+      {
+        button_led_set_mode(BUTTON_1_LED, LED_MODE_BLINKING);
+        button_led_set_mode(BUTTON_2_LED, LED_MODE_OFF);
+        button_led_set_mode(BUTTON_3_LED, LED_MODE_OFF);
+      }
+      else if ("1b" == Scenario)
+      {
+        button_led_set_mode(BUTTON_1_LED, LED_MODE_ON);
+        button_led_set_mode(BUTTON_2_LED, LED_MODE_OFF);
+        button_led_set_mode(BUTTON_3_LED, LED_MODE_OFF);
+      }
+      else if ("2a" == Scenario)
+      {
+        button_led_set_mode(BUTTON_1_LED, LED_MODE_OFF);
+        button_led_set_mode(BUTTON_2_LED, LED_MODE_BLINKING);
+        button_led_set_mode(BUTTON_3_LED, LED_MODE_OFF);
+      }
+      else if ("2b" == Scenario)
+      {
+        button_led_set_mode(BUTTON_1_LED, LED_MODE_OFF);
+        button_led_set_mode(BUTTON_2_LED, LED_MODE_ON);
+        button_led_set_mode(BUTTON_3_LED, LED_MODE_OFF);
+      }
+      else if ("3a" == Scenario)
+      {
+        button_led_set_mode(BUTTON_1_LED, LED_MODE_OFF);
+        button_led_set_mode(BUTTON_2_LED, LED_MODE_OFF);
+        button_led_set_mode(BUTTON_3_LED, LED_MODE_BLINKING);
+      }
+      else if ("3b" == Scenario)
+      {
+        button_led_set_mode(BUTTON_1_LED, LED_MODE_OFF);
+        button_led_set_mode(BUTTON_2_LED, LED_MODE_OFF);
+        button_led_set_mode(BUTTON_3_LED, LED_MODE_ON);
+      }
+      else
+      {
+        // For completeness
+      }
     }
   }
 
@@ -295,6 +346,12 @@ void udp_recv_pkt(void)
   {
     char pkt_buf[UDP_RX_PACKET_SIZE_BYTES] = { 0 };
     int pkt_len = 0;
+    IPAddress pkt_ip_addr;
+
+    if (!dest_ip_addr_set)
+    {
+      pkt_ip_addr = udp.remoteIP();
+    }
 
     while (pkt_len < pkt_size)
     {
@@ -311,10 +368,10 @@ void udp_recv_pkt(void)
       // Only operate on the packet if it is valid
       if (DeserializationError::Ok == err)
       {
-//#if defined(DEBUG_DISPLAYS)
+#if defined(DEBUG_DISPLAYS)
         serializeJson(doc, Serial);
         Serial.println("");
-//#endif
+#endif
         // Grab the type of packet received
         String pkt_type_str = udp_pkt_parse_get_pkt_type(doc);
 
@@ -355,6 +412,12 @@ void udp_recv_pkt(void)
           Serial.print(client_dev_id);
           Serial.print(" ");
 #endif
+          if (!dest_ip_addr_set)
+          {
+            dest_ip_addr = pkt_ip_addr;
+            dest_ip_addr_set = true;
+          }
+
           Serial.print("Client is ");
           if (ready_status)
           {
@@ -365,6 +428,10 @@ void udp_recv_pkt(void)
             Serial.print("not ready to receive commands");
           }
           Serial.println("");
+
+          // Indicate that the FOB has connected to a client
+          status_led_set_mode(STATUS_LED_YEL, STATUS_LED_MODE_OFF);
+          status_led_set_mode(STATUS_LED_GRN, STATUS_LED_MODE_ON);
         }
         else
         {
