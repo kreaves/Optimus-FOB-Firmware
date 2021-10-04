@@ -45,7 +45,7 @@
 /// @details
 /// This defines the amount of time in milli-seconds between the sampling of
 /// the switch input pin.
-#define SWITCH_SAMPLE_DELAY_MSECS           100
+#define SWITCH_SAMPLE_DELAY_MSECS           75
 
 //
 // Local Structures & Enumerations
@@ -68,7 +68,7 @@ typedef struct
 
     /// @details
     /// Indicates the last checked state of the switch.
-    button_switch_state_type state;
+    volatile button_switch_state_type state;
 } button_switch_t;
 
 /// @brief
@@ -98,6 +98,10 @@ typedef struct
 //
 // Local Function Prototypes
 //
+
+static void button_1_switch_isr(void);
+static void button_2_switch_isr(void);
+static void button_3_switch_isr(void);
 
 //
 // Local Global Variables
@@ -153,6 +157,32 @@ void button_switch_cfg(void)
         ++idx)
     {
         pinMode(button_switches[idx].the_switch.pin, INPUT);
+
+        if (BUTTON_1_SWITCH == (button_switches_t)idx)
+        {
+            attachInterrupt(
+                digitalPinToInterrupt(button_switches[idx].the_switch.pin),
+                button_1_switch_isr,
+                CHANGE);
+        }
+        else if (BUTTON_2_SWITCH == (button_switches_t)idx)
+        {
+            attachInterrupt(
+                digitalPinToInterrupt(button_switches[idx].the_switch.pin),
+                button_2_switch_isr,
+                CHANGE);
+        }
+        else if (BUTTON_3_SWITCH == (button_switches_t)idx)
+        {
+            attachInterrupt(
+                digitalPinToInterrupt(button_switches[idx].the_switch.pin),
+                button_3_switch_isr,
+                CHANGE);
+        }
+        else
+        {
+            // For completeness
+        }
     }
 }
 
@@ -163,7 +193,7 @@ button_switch_state_type button_switch_state_now(
 
     if (BUTTON_SWITCH_MAX > which_switch)
     {
-        const int pin_val = digitalRead(
+/*        const int pin_val = digitalRead(
                                 button_switches[which_switch].the_switch.pin);
 
         if (pin_val)
@@ -176,7 +206,7 @@ button_switch_state_type button_switch_state_now(
             button_switches[which_switch].the_switch.state =
                                                     BUTTON_SWITCH_STATE_OPEN;
         }
-
+*/
         rv = button_switches[which_switch].the_switch.state;
     }
 
@@ -228,4 +258,52 @@ button_switch_state_type button_switch_state_get(
     }
 
     return rv;
+}
+
+static void button_1_switch_isr(void)
+{
+    const int pin_val = digitalRead(
+                                button_switches[BUTTON_1_SWITCH].the_switch.pin);
+    if (pin_val)
+    {
+        button_switches[BUTTON_1_SWITCH].the_switch.state =
+                                                BUTTON_SWITCH_STATE_CLOSED;
+    }
+    else
+    {
+        button_switches[BUTTON_1_SWITCH].the_switch.state =
+                                                BUTTON_SWITCH_STATE_OPEN;
+    }
+}
+
+static void button_2_switch_isr(void)
+{
+    const int pin_val = digitalRead(
+                                button_switches[BUTTON_2_SWITCH].the_switch.pin);
+    if (pin_val)
+    {
+        button_switches[BUTTON_2_SWITCH].the_switch.state =
+                                                BUTTON_SWITCH_STATE_CLOSED;
+    }
+    else
+    {
+        button_switches[BUTTON_2_SWITCH].the_switch.state =
+                                                BUTTON_SWITCH_STATE_OPEN;
+    }
+}
+
+static void button_3_switch_isr(void)
+{
+    const int pin_val = digitalRead(
+                                button_switches[BUTTON_3_SWITCH].the_switch.pin);
+    if (pin_val)
+    {
+        button_switches[BUTTON_3_SWITCH].the_switch.state =
+                                                BUTTON_SWITCH_STATE_CLOSED;
+    }
+    else
+    {
+        button_switches[BUTTON_3_SWITCH].the_switch.state =
+                                                BUTTON_SWITCH_STATE_OPEN;
+    }
 }

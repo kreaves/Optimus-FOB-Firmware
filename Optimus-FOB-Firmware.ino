@@ -25,6 +25,7 @@
 #define JSON_MEMORY_SIZE_BYTES 200
 */
 
+#include "version.h"
 #include "secrets.h"
 #include "src/udp_pkt/udp_pkt_build.h"
 #include "src/udp_pkt/udp_pkt_parse.h"
@@ -73,6 +74,7 @@ void setup() {
   {
     ; // wait for serial port to connect. Needed for native USB port only
   }
+  display_version();
 
   // Add number to network name
   ssid_str += String(devid_str, DEC);
@@ -219,7 +221,6 @@ void loop() {
       if ("2a" == Scenario)
       {
         cmd = udp_pkt_build_scenario_pkt(String("0"), (int)DEVICE_ID_NUMBER);
-        udp_xmit_pkt(cmd);
       }
       else
       {
@@ -241,7 +242,6 @@ void loop() {
       if ("3a" == Scenario)
       {
         cmd = udp_pkt_build_scenario_pkt(String("0"), (int)DEVICE_ID_NUMBER);
-        udp_xmit_pkt(cmd);
       }
       else
       {
@@ -588,4 +588,20 @@ void ap_wifi_status(void)
   Serial.print(ip);
   Serial.print(" port ");
   Serial.println(udp_recv_port);
+}
+
+/// @brief
+/// Show version information
+///
+/// @details
+/// This function takes the information in the version.h file and displays it.
+void display_version(void)
+{
+    Serial.print("Optimus Remote: ");
+    Serial.print((unsigned short)VERSION_NUMBER_MAJOR);
+    Serial.print(".");
+    Serial.print((unsigned short)VERSION_NUMBER_MINOR);
+    Serial.print(".");
+    Serial.print((unsigned long long)VERSION_NUMBER_BUILD_DATE, HEX);
+    Serial.println((unsigned long long)VERSION_NUMBER_BUILD_TIME, HEX);
 }

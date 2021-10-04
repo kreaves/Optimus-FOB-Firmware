@@ -34,21 +34,21 @@
 ///
 /// @details
 /// This defines the minor version number of the software.
-#define VERSION_NUMBER_MINOR                0x0
+#define VERSION_NUMBER_MINOR                0x1
 
 /// @brief
 /// Build date
 ///
 /// @details
 /// This defines the build date of the software (year, month, day, with no spaces)
-#define VERSION_NUMBER_BUILD_DATE           0x20211002
+#define VERSION_NUMBER_BUILD_DATE           0x20211004
 
 /// @brief
 /// Build time
 ///
 /// @details
 /// This defines the build time of the software (hour, minutes, with no spaces)
-#define VERSION_NUMBER_BUILD_TIME           0x1145
+#define VERSION_NUMBER_BUILD_TIME           0x1149
 
 //
 // Shared Structures / Enumerations
