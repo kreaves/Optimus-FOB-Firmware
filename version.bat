@@ -25,6 +25,7 @@ set minute=%time:~3,2%
 ::: End set time
 
 ::: Write the file
+erase version.h
 echo ///>%file%
 echo /// @file>>%file%
 echo ///>>%file%
